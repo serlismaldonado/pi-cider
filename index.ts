@@ -383,16 +383,20 @@ export default function (pi: ExtensionAPI) {
 			});
 
 			const results: string[] = [];
-			if (data?.data?.songs?.data) {
+			const songs = data?.data?.results?.songs?.data;
+			const albums = data?.data?.results?.albums?.data;
+
+			if (songs?.length) {
 				results.push("Songs:");
-				data.data.songs.data.slice(0, 5).forEach((song: any, i: number) => {
-					results.push(`  ${i + 1}. ${song.attributes.name} - ${song.attributes.artistName}`);
+				songs.slice(0, 5).forEach((song: any, i: number) => {
+					results.push(`  ${i + 1}. ${song.attributes.name} - ${song.attributes.artistName} (${song.attributes.albumName})`);
 				});
 			}
-			if (data?.data?.albums?.data) {
-				results.push("\nAlbums:");
-				data.data.albums.data.slice(0, 3).forEach((album: any, i: number) => {
-					results.push(`  ${i + 1}. ${album.attributes.name} - ${album.attributes.artistName}`);
+			if (albums?.length) {
+				if (results.length) results.push("");
+				results.push("Albums:");
+				albums.slice(0, 3).forEach((album: any, i: number) => {
+					results.push(`  ${i + 1}. ${album.attributes.name} - ${album.attributes.artistName} (${album.attributes.genreNames?.[0] || ""})`);
 				});
 			}
 
