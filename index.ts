@@ -441,7 +441,7 @@ export default function (pi: ExtensionAPI) {
 				results.push("Songs:");
 				data.data.results.songs.data.slice(0, 5).forEach((song: any, i: number) => {
 					results.push(
-						`  ${i + 1}. ${song.attributes.name} - ${song.attributes.artistName} (${song.id})`,
+						`  ${i + 1}. ${song.attributes.name} - ${song.attributes.artistName} (${song.id})\n     Album: ${song.attributes.albumName}`,
 					);
 				});
 			}
@@ -450,6 +450,14 @@ export default function (pi: ExtensionAPI) {
 				data.data.results.albums.data.slice(0, 3).forEach((album: any, i: number) => {
 					results.push(
 						`  ${i + 1}. ${album.attributes.name} - ${album.attributes.artistName}`,
+					);
+				});
+			}
+			if (data?.data?.results?.artists?.data) {
+				results.push("\nArtists:");
+				data.data.results.artists.data.slice(0, 3).forEach((artist: any, i: number) => {
+					results.push(
+						`  ${i + 1}. ${artist.attributes.name}`,
 					);
 				});
 			}
@@ -479,6 +487,46 @@ export default function (pi: ExtensionAPI) {
 				id: params.id,
 			});
 			return result(`Playing song ID: ${params.id}`);
+		},
+	});
+
+	pi.registerTool({
+		name: "cider_play_next",
+		label: "Cider Play Next",
+		description: "Add a song to the front of the queue (plays next)",
+		parameters: Type.Object({
+			id: Type.String({ description: "Apple Music song ID" }),
+		}),
+		async execute(
+			_toolCallId: string,
+			params: { id: string },
+			_signal: AbortSignal | undefined,
+		) {
+			await ciderRequest("/api/v1/playback/play-next", "POST", {
+				type: "songs",
+				id: params.id,
+			});
+			return result(`Added song ${params.id} to play next`);
+		},
+	});
+
+	pi.registerTool({
+		name: "cider_play_later",
+		label: "Cider Play Later",
+		description: "Add a song to the end of the queue",
+		parameters: Type.Object({
+			id: Type.String({ description: "Apple Music song ID" }),
+		}),
+		async execute(
+			_toolCallId: string,
+			params: { id: string },
+			_signal: AbortSignal | undefined,
+		) {
+			await ciderRequest("/api/v1/playback/play-later", "POST", {
+				type: "songs",
+				id: params.id,
+			});
+			return result(`Added song ${params.id} to queue`);
 		},
 	});
 }
