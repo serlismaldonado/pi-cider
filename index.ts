@@ -96,6 +96,7 @@ function formatTime(seconds: number): string {
 }
 
 let lastTrackId: string | null = null;
+let idlePollCount: number = 0;
 let pollInterval: NodeJS.Timeout | null = null;
 
 async function getNowPlaying(): Promise<{ name: string; artist: string; trackId?: string } | null> {
@@ -118,16 +119,20 @@ async function getNowPlaying(): Promise<{ name: string; artist: string; trackId?
 }
 
 function updateStatus(ctx: any, theme: any, track: { name: string; artist: string; trackId?: string } | null) {
-	if (track) {
+	if (track?.name) {
+		idlePollCount = 0;
 		const currentId = track.trackId || null;
 		if (currentId !== lastTrackId) {
 			lastTrackId = currentId;
 			const shortName = track.name.length > 20 ? track.name.substring(0, 18) + "..." : track.name;
 			ctx.ui.setStatus("pi-cider", theme.fg("accent", `♪ ${shortName} - ${track.artist}`));
 		}
-	} else if (lastTrackId !== null) {
-		lastTrackId = null;
-		ctx.ui.setStatus("pi-cider", theme.fg("dim", "Cider (idle)"));
+	} else {
+		idlePollCount++;
+		if (idlePollCount >= 2 && lastTrackId !== null) {
+			lastTrackId = null;
+			ctx.ui.setStatus("pi-cider", theme.fg("dim", "Cider (idle)"));
+		}
 	}
 }
 
