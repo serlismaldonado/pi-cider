@@ -63,11 +63,9 @@ Environment variables (optional):
 ## Install
 
 ```bash
+# From npm
+pi install pi-cider
+
+# From local
 pi install /path/to/pi-cider
-```
-
-## Publish to npm (optional)
-
-```bash
-npm version patch && npm publish
 ```
