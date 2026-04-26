@@ -1,6 +1,6 @@
 {
 	"name": "pi-cider",
-	"version": "1.0.12",
+	"version": "1.0.13",
 	"description": "Pi extension for Cider Apple Music client - control playback, queue management, and more via RPC",
 	"type": "module",
 	"main": "index.ts",
