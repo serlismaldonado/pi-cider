@@ -63,9 +63,5 @@ Environment variables (optional):
 ## Install
 
 ```bash
-# From npm
 pi install pi-cider
-
-# From local
-pi install /path/to/pi-cider
 ```
