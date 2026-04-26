@@ -17,7 +17,7 @@ function getToken(): string {
 	const authPath = path.join(process.env.HOME || "", ".pi/agent/auth.json");
 	try {
 		const auth = JSON.parse(fs.readFileSync(authPath, "utf-8"));
-		const key = auth?.cider?.key;
+		const key = auth?.["env:CIDER_API_TOKEN"] || auth?.cider?.key;
 		if (key) {
 			return key;
 		}
