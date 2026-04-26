@@ -341,6 +341,9 @@ export default function (pi: ExtensionAPI) {
 		}),
 		async execute(_toolCallId, params, _signal) {
 			await ciderRequest("/api/v1/playback/play-url", "POST", { url: params.url });
+			// Small delay then play
+			await new Promise(r => setTimeout(r, 500));
+			await ciderRequest("/api/v1/playback/play", "POST", {});
 			return result(`Playing: ${params.url}`);
 		},
 	});
@@ -389,14 +392,16 @@ export default function (pi: ExtensionAPI) {
 			if (songs?.length) {
 				results.push("Songs:");
 				songs.slice(0, 5).forEach((song: any, i: number) => {
-					results.push(`  ${i + 1}. ${song.attributes.name} - ${song.attributes.artistName} (${song.attributes.albumName})`);
+					results.push(`  ${i + 1}. ${song.attributes.name} - ${song.attributes.artistName}`);
+					results.push(`     ID: ${song.id}`);
 				});
 			}
 			if (albums?.length) {
 				if (results.length) results.push("");
 				results.push("Albums:");
 				albums.slice(0, 3).forEach((album: any, i: number) => {
-					results.push(`  ${i + 1}. ${album.attributes.name} - ${album.attributes.artistName} (${album.attributes.genreNames?.[0] || ""})`);
+					results.push(`  ${i + 1}. ${album.attributes.name} - ${album.attributes.artistName}`);
+					results.push(`     ID: ${album.id}`);
 				});
 			}
 
