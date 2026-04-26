@@ -1,4 +1,6 @@
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
+import * as fs from "fs";
+import * as path from "path";
 import { Type } from "typebox";
 import { result, error as toolError } from "./types.js";
 
@@ -7,13 +9,25 @@ const CIDER_PORT = process.env.CIDER_PORT || "10767";
 const CIDER_BASE_URL = `http://${CIDER_HOST}:${CIDER_PORT}`;
 
 function getToken(): string {
-	const token = process.env.CIDER_API_TOKEN;
-	if (!token) {
-		throw new Error(
-			"Cider API token not configured. Set CIDER_API_TOKEN in .env or use env:CIDER_API_TOKEN in auth.json",
-		);
+	const envToken = process.env.CIDER_API_TOKEN;
+	if (envToken) {
+		return envToken;
 	}
-	return token;
+
+	const authPath = path.join(process.env.HOME || "", ".pi/agent/auth.json");
+	try {
+		const auth = JSON.parse(fs.readFileSync(authPath, "utf-8"));
+		const key = auth?.cider?.key;
+		if (key) {
+			return key;
+		}
+	} catch {
+		// Ignore
+	}
+
+	throw new Error(
+		"Cider API token not configured. Set CIDER_API_TOKEN in .env or cider.key in ~/.pi/agent/auth.json",
+	);
 }
 
 async function ciderRequest<T>(
@@ -26,8 +40,10 @@ async function ciderRequest<T>(
 
 	const headers: Record<string, string> = {
 		"Content-Type": "application/json",
-		apitoken: token,
 	};
+	if (token) {
+		headers["apitoken"] = token;
+	}
 
 	const response = await fetch(url, {
 		method,
@@ -182,7 +198,7 @@ export default function (pi: ExtensionAPI) {
 			_params: object,
 			_signal: AbortSignal | undefined,
 		) {
-			await ciderRequest("/api/v1/playback/play", "POST");
+			await ciderRequest("/api/v1/playback/play", "POST", {});
 			return result("Playback started");
 		},
 	});
