@@ -1,0 +1,43 @@
+{
+	"name": "pi-cider",
+	"version": "1.0.0",
+	"description": "Pi extension for Cider Apple Music client - control playback, queue management, and more via RPC",
+	"type": "module",
+	"main": "index.ts",
+	"exports": {
+		".": "./index.ts"
+	},
+	"pi": {
+		"extensions": [
+			"./index.ts"
+		],
+		"skills": [
+			"./skills"
+		]
+	},
+	"keywords": [
+		"pi-extension",
+		"pi-package",
+		"pi",
+		"pi-coding-agent",
+		"cider",
+		"apple-music",
+		"music"
+	],
+	"author": "Serlis Maldonado",
+	"license": "MIT",
+	"peerDependencies": {
+		"@mariozechner/pi-ai": "*",
+		"@mariozechner/pi-coding-agent": "*",
+		"@mariozechner/pi-tui": "*"
+	},
+	"devDependencies": {
+		"@mariozechner/pi-coding-agent": "^0.70.2",
+		"@types/node": "^25.6.0",
+		"typescript": "^6.0.3"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/serlismaldonado/pi-cider"
+	}
+}
