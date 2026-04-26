@@ -72,7 +72,7 @@ export default function (pi) {
     pi.on("turn_end", async (_event, ctx) => {
         const theme = ctx.ui.theme;
         const track = await getNowPlaying();
-        if (track) {
+        if (track && track.name && track.artist) {
             const shortName = track.name.length > 20
                 ? track.name.substring(0, 18) + "..."
                 : track.name;
