@@ -52,6 +52,7 @@ async function ciderRequest<T>(
 	}
 
 	const headerFormats = [
+		{ name: "apptoken", value: token },
 		{ name: "apitoken", value: token },
 		{ name: "API-Token", value: token },
 		{ name: "Authorization", value: `Bearer ${token}` },
@@ -133,12 +134,13 @@ export default function (pi: ExtensionAPI) {
 		parameters: Type.Object({}),
 		async execute(_toolCallId, _params, _signal) {
 			const token = getToken();
-			const headerFormats = [
-				{ name: "apitoken", value: token },
-				{ name: "API-Token", value: token },
-				{ name: "Authorization", value: token ? `Bearer ${token}` : "" },
-				{ name: "X-API-Token", value: token },
-			];
+				const headerFormats = [
+					{ name: "apptoken", value: token },
+					{ name: "apitoken", value: token },
+					{ name: "API-Token", value: token },
+					{ name: "Authorization", value: token ? `Bearer ${token}` : "" },
+					{ name: "X-API-Token", value: token },
+				];
 
 			for (const format of headerFormats) {
 				const headers: Record<string, string> = {};

@@ -43,6 +43,7 @@ async function ciderRequest(urlPath, method = "GET", body) {
         return response.json();
     }
     const headerFormats = [
+        { name: "apptoken", value: token },
         { name: "apitoken", value: token },
         { name: "API-Token", value: token },
         { name: "Authorization", value: `Bearer ${token}` },
@@ -115,6 +116,7 @@ export default function (pi) {
         async execute(_toolCallId, _params, _signal) {
             const token = getToken();
             const headerFormats = [
+                { name: "apptoken", value: token },
                 { name: "apitoken", value: token },
                 { name: "API-Token", value: token },
                 { name: "Authorization", value: token ? `Bearer ${token}` : "" },
