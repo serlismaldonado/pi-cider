@@ -17,7 +17,7 @@ Set your Cider API token in one of these ways:
 CIDER_API_TOKEN=your-token-here
 ```
 
-**Option 2: Pi auth.json**
+**Option 2: Pi auth.json** (simple)
 
 ```json
 {
@@ -27,6 +27,16 @@ CIDER_API_TOKEN=your-token-here
   }
 }
 ```
+
+**Option 3: Pi auth.json** (with env prefix)
+
+```json
+{
+  "env:CIDER_API_TOKEN": "your-cider-api-token"
+}
+```
+
+The `env:` prefix injects the value as an environment variable, which some setups prefer.
 
 Environment variables (optional):
 
