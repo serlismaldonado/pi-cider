@@ -81,6 +81,7 @@ function formatTime(seconds) {
     return `${mins}:${secs.toString().padStart(2, "0")}`;
 }
 let lastTrackId = null;
+let pollInterval = null;
 async function getNowPlaying() {
     try {
         const data = await ciderRequest("/api/v1/playback/now-playing");
@@ -97,21 +98,32 @@ async function getNowPlaying() {
         return null;
     }
 }
+function updateStatus(ctx, theme, track) {
+    if (track) {
+        const currentId = track.trackId || null;
+        if (currentId !== lastTrackId) {
+            lastTrackId = currentId;
+            const shortName = track.name.length > 20 ? track.name.substring(0, 18) + "..." : track.name;
+            ctx.ui.setStatus("pi-cider", theme.fg("accent", `♪ ${shortName} - ${track.artist}`));
+        }
+    }
+    else if (lastTrackId !== null) {
+        lastTrackId = null;
+        ctx.ui.setStatus("pi-cider", theme.fg("dim", "Cider (idle)"));
+    }
+}
 export default function (pi) {
     pi.on("session_start", async (_event, ctx) => {
         const theme = ctx.ui.theme;
         ctx.ui.setStatus("pi-cider", theme.fg("dim", "Cider"));
-    });
-    pi.on("turn_end", async (_event, ctx) => {
-        const theme = ctx.ui.theme;
-        const track = await getNowPlaying();
-        if (track) {
-            const shortName = track.name.length > 20 ? track.name.substring(0, 18) + "..." : track.name;
-            ctx.ui.setStatus("pi-cider", theme.fg("accent", `♪ ${shortName} - ${track.artist}`));
-        }
-        else {
-            ctx.ui.setStatus("pi-cider", theme.fg("dim", "Cider (idle)"));
-        }
+        // Check immediately if something is playing
+        const initialTrack = await getNowPlaying();
+        updateStatus(ctx, theme, initialTrack);
+        // Start polling every 5 seconds to detect track changes
+        pollInterval = setInterval(async () => {
+            const track = await getNowPlaying();
+            updateStatus(ctx, theme, track);
+        }, 5000);
     });
     pi.registerTool({
         name: "cider_status",
