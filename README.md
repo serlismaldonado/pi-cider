@@ -67,8 +67,10 @@ Environment variables (optional):
 
 1. Open Cider → Settings → Connectivity
 2. Click "Manage External Application Access to Cider"
-3. Generate API token or disable authentication
+3. Generate API token
 4. Copy the token for use above
+
+**Note:** The API uses the `apptoken` header (not `apitoken`).
 
 ## Install
 
