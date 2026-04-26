@@ -190,7 +190,7 @@ export default function (pi) {
         description: "Resume playback or start playing the queue",
         parameters: Type.Object({}),
         async execute(_toolCallId, _params, _signal) {
-            await ciderRequest("/api/v1/playback/play", "POST");
+            await ciderRequest("/api/v1/playback/play", "POST", {});
             return result("Playback started");
         },
     });
@@ -200,7 +200,7 @@ export default function (pi) {
         description: "Pause the current playback",
         parameters: Type.Object({}),
         async execute(_toolCallId, _params, _signal) {
-            await ciderRequest("/api/v1/playback/pause", "POST");
+            await ciderRequest("/api/v1/playback/pause", "POST", {});
             return result("Playback paused");
         },
     });
@@ -210,7 +210,7 @@ export default function (pi) {
         description: "Toggle between play and pause",
         parameters: Type.Object({}),
         async execute(_toolCallId, _params, _signal) {
-            await ciderRequest("/api/v1/playback/playpause", "POST");
+            await ciderRequest("/api/v1/playback/playpause", "POST", {});
             return result("Play/Pause toggled");
         },
     });
@@ -220,7 +220,7 @@ export default function (pi) {
         description: "Skip to the next track in the queue",
         parameters: Type.Object({}),
         async execute(_toolCallId, _params, _signal) {
-            await ciderRequest("/api/v1/playback/next", "POST");
+            await ciderRequest("/api/v1/playback/next", "POST", {});
             return result("Skipped to next track");
         },
     });
@@ -230,7 +230,7 @@ export default function (pi) {
         description: "Go to the previous track or restart current track",
         parameters: Type.Object({}),
         async execute(_toolCallId, _params, _signal) {
-            await ciderRequest("/api/v1/playback/previous", "POST");
+            await ciderRequest("/api/v1/playback/previous", "POST", {});
             return result("Went to previous track");
         },
     });
@@ -307,7 +307,7 @@ export default function (pi) {
         description: "Toggle shuffle mode on or off",
         parameters: Type.Object({}),
         async execute(_toolCallId, _params, _signal) {
-            await ciderRequest("/api/v1/playback/toggle-shuffle", "POST");
+            await ciderRequest("/api/v1/playback/toggle-shuffle", "POST", {});
             return result("Shuffle toggled");
         },
     });
@@ -317,7 +317,7 @@ export default function (pi) {
         description: "Toggle repeat mode (cycles: off -> repeat one -> repeat all)",
         parameters: Type.Object({}),
         async execute(_toolCallId, _params, _signal) {
-            await ciderRequest("/api/v1/playback/toggle-repeat", "POST");
+            await ciderRequest("/api/v1/playback/toggle-repeat", "POST", {});
             return result("Repeat mode toggled");
         },
     });
