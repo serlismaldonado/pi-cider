@@ -15,6 +15,7 @@ Cider extension for Pi - control Apple Music via Cider client RPC API.
 
 - Environment: `CIDER_API_TOKEN` in `.env` file
 - Pi auth: `~/.pi/agent/auth.json` → `"cider": { "key": "..." }`
+- Pi auth with env prefix: `"env:CIDER_API_TOKEN": "..."` (injects as env var)
 
 **Default:** localhost:10767
 
