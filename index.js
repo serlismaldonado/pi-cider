@@ -134,7 +134,7 @@ export default function (pi) {
                 lastStatusText = statusText;
                 ctx.ui.setStatus("pi-cider", track ? theme.fg("accent", statusText) : theme.fg("dim", statusText));
             }
-        }, 30000); // Update every 30 seconds
+        }, 10000); // Update every 10 seconds
         ctx._ciderPollInterval = pollInterval;
     });
     pi.on("turn_end", async (_event, ctx) => {
