@@ -81,6 +81,7 @@ function formatTime(seconds) {
     return `${mins}:${secs.toString().padStart(2, "0")}`;
 }
 let lastTrackId = null;
+let lastStatusText = null;
 async function getNowPlaying() {
     try {
         const data = await ciderRequest("/api/v1/playback/now-playing");
@@ -88,7 +89,9 @@ async function getNowPlaying() {
             return {
                 name: data.info.name,
                 artist: data.info.artistName,
-                trackId: data.info.playParams?.id
+                trackId: data.info.playParams?.id,
+                currentTime: data.info.currentPlaybackTime,
+                duration: data.info.durationInMillis
             };
         }
         return null;
@@ -97,27 +100,41 @@ async function getNowPlaying() {
         return null;
     }
 }
+function formatTimeShort(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+}
 export default function (pi) {
     pi.on("session_start", async (_event, ctx) => {
         const theme = ctx.ui.theme;
         ctx.ui.setStatus("pi-cider", theme.fg("dim", "Cider"));
-        // Start polling for now playing updates every 5 seconds
+        // Start polling for now playing updates
         const pollInterval = setInterval(async () => {
             const track = await getNowPlaying();
             const currentTrackId = track?.trackId || null;
-            // Only update if track changed or first check
-            if (currentTrackId !== lastTrackId) {
-                lastTrackId = currentTrackId;
-                if (track) {
-                    const shortName = track.name.length > 20 ? track.name.substring(0, 18) + "..." : track.name;
-                    ctx.ui.setStatus("pi-cider", theme.fg("accent", `♪ ${shortName} - ${track.artist}`));
+            let statusText;
+            if (track) {
+                const shortName = track.name.length > 20 ? track.name.substring(0, 18) + "..." : track.name;
+                if (track.currentTime !== undefined && track.duration !== undefined) {
+                    const current = formatTimeShort(track.currentTime);
+                    const total = formatTimeShort(track.duration / 1000);
+                    statusText = `♪ ${shortName} - ${track.artist} [${current}/${total}]`;
                 }
                 else {
-                    ctx.ui.setStatus("pi-cider", theme.fg("dim", "Cider (idle)"));
+                    statusText = `♪ ${shortName} - ${track.artist}`;
                 }
             }
-        }, 5000);
-        // Store interval ID for cleanup if needed
+            else {
+                statusText = "Cider (idle)";
+            }
+            // Update if track changed or status text changed
+            if (currentTrackId !== lastTrackId || statusText !== lastStatusText) {
+                lastTrackId = currentTrackId;
+                lastStatusText = statusText;
+                ctx.ui.setStatus("pi-cider", track ? theme.fg("accent", statusText) : theme.fg("dim", statusText));
+            }
+        }, 30000); // Update every 30 seconds
         ctx._ciderPollInterval = pollInterval;
     });
     pi.on("turn_end", async (_event, ctx) => {
