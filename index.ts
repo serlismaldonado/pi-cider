@@ -437,17 +437,17 @@ export default function (pi: ExtensionAPI) {
 			);
 
 			const results: string[] = [];
-			if (data?.data?.songs?.data) {
+			if (data?.data?.results?.songs?.data) {
 				results.push("Songs:");
-				data.data.songs.data.slice(0, 5).forEach((song: any, i: number) => {
+				data.data.results.songs.data.slice(0, 5).forEach((song: any, i: number) => {
 					results.push(
-						`  ${i + 1}. ${song.attributes.name} - ${song.attributes.artistName}`,
+						`  ${i + 1}. ${song.attributes.name} - ${song.attributes.artistName} (${song.id})`,
 					);
 				});
 			}
-			if (data?.data?.albums?.data) {
+			if (data?.data?.results?.albums?.data) {
 				results.push("\nAlbums:");
-				data.data.albums.data.slice(0, 3).forEach((album: any, i: number) => {
+				data.data.results.albums.data.slice(0, 3).forEach((album: any, i: number) => {
 					results.push(
 						`  ${i + 1}. ${album.attributes.name} - ${album.attributes.artistName}`,
 					);
@@ -459,6 +459,26 @@ export default function (pi: ExtensionAPI) {
 			}
 
 			return result(results.join("\n"));
+		},
+	});
+
+	pi.registerTool({
+		name: "cider_play_id",
+		label: "Cider Play by ID",
+		description: "Play a song by its Apple Music catalog ID",
+		parameters: Type.Object({
+			id: Type.String({ description: "Apple Music song ID" }),
+		}),
+		async execute(
+			_toolCallId: string,
+			params: { id: string },
+			_signal: AbortSignal | undefined,
+		) {
+			await ciderRequest("/api/v1/playback/play-item", "POST", {
+				type: "songs",
+				id: params.id,
+			});
+			return result(`Playing song ID: ${params.id}`);
 		},
 	});
 }
