@@ -1,12 +1,43 @@
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
 import * as fs from "fs";
 import * as path from "path";
+import { execSync } from "child_process";
 import { Type } from "typebox";
 import { result, error as toolError } from "./types.js";
 
 const CIDER_HOST = process.env.CIDER_HOST || "localhost";
 const CIDER_PORT = process.env.CIDER_PORT || "10767";
 const CIDER_BASE_URL = `http://${CIDER_HOST}:${CIDER_PORT}`;
+
+async function ensureCiderRunning(): Promise<boolean> {
+	try {
+		const response = await fetch(`${CIDER_BASE_URL}/api/v1/playback/active`, {
+			method: "GET",
+			headers: { "Content-Type": "application/json" },
+		});
+		if (response.status === 204 || response.status === 200) {
+			return true;
+		}
+	} catch {}
+	
+	// Cider not running, launch it
+	try {
+		execSync('open -a "Cider"', { stdio: "ignore" });
+		// Wait for Cider to start (up to 10 seconds)
+		for (let i = 0; i < 20; i++) {
+			await new Promise(r => setTimeout(r, 500));
+			try {
+				const response = await fetch(`${CIDER_BASE_URL}/api/v1/playback/active`);
+				if (response.status === 204 || response.status === 200) {
+					return true;
+				}
+			} catch {}
+		}
+	} catch (err) {
+		console.error("Failed to launch Cider:", err);
+	}
+	return false;
+}
 
 function getToken(): string | null {
 	const token = process.env.CIDER_API_TOKEN;
@@ -229,6 +260,7 @@ export default function (pi: ExtensionAPI) {
 		description: "Resume playback or start playing the queue",
 		parameters: Type.Object({}),
 		async execute(_toolCallId, _params, _signal) {
+			await ensureCiderRunning();
 			await ciderRequest("/api/v1/playback/play", "POST", {});
 			return result("Playback started");
 		},
@@ -345,6 +377,7 @@ export default function (pi: ExtensionAPI) {
 			url: Type.String({ description: "Apple Music URL" }),
 		}),
 		async execute(_toolCallId, params, _signal) {
+			await ensureCiderRunning();
 			await ciderRequest("/api/v1/playback/play-url", "POST", { url: params.url });
 			// Small delay then play
 			await new Promise(r => setTimeout(r, 500));
@@ -425,6 +458,7 @@ export default function (pi: ExtensionAPI) {
 			id: Type.String({ description: "Apple Music song ID" }),
 		}),
 		async execute(_toolCallId, params, _signal) {
+			await ensureCiderRunning();
 			await ciderRequest("/api/v1/playback/play-item", "POST", { type: "songs", id: params.id });
 			return result(`Playing song ID: ${params.id}`);
 		},
@@ -438,6 +472,7 @@ export default function (pi: ExtensionAPI) {
 			id: Type.String({ description: "Apple Music song ID" }),
 		}),
 		async execute(_toolCallId, params, _signal) {
+			await ensureCiderRunning();
 			await ciderRequest("/api/v1/playback/play-next", "POST", { type: "songs", id: params.id });
 			return result(`Added song ${params.id} to play next`);
 		},
@@ -451,6 +486,7 @@ export default function (pi: ExtensionAPI) {
 			id: Type.String({ description: "Apple Music song ID" }),
 		}),
 		async execute(_toolCallId, params, _signal) {
+			await ensureCiderRunning();
 			await ciderRequest("/api/v1/playback/play-later", "POST", { type: "songs", id: params.id });
 			return result(`Added song ${params.id} to queue`);
 		},

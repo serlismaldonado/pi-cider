@@ -1,10 +1,42 @@
 import * as fs from "fs";
 import * as path from "path";
+import { execSync } from "child_process";
 import { Type } from "typebox";
 import { result, error as toolError } from "./types.js";
 const CIDER_HOST = process.env.CIDER_HOST || "localhost";
 const CIDER_PORT = process.env.CIDER_PORT || "10767";
 const CIDER_BASE_URL = `http://${CIDER_HOST}:${CIDER_PORT}`;
+async function ensureCiderRunning() {
+    try {
+        const response = await fetch(`${CIDER_BASE_URL}/api/v1/playback/active`, {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+        });
+        if (response.status === 204 || response.status === 200) {
+            return true;
+        }
+    }
+    catch { }
+    // Cider not running, launch it
+    try {
+        execSync('open -a "Cider"', { stdio: "ignore" });
+        // Wait for Cider to start (up to 10 seconds)
+        for (let i = 0; i < 20; i++) {
+            await new Promise(r => setTimeout(r, 500));
+            try {
+                const response = await fetch(`${CIDER_BASE_URL}/api/v1/playback/active`);
+                if (response.status === 204 || response.status === 200) {
+                    return true;
+                }
+            }
+            catch { }
+        }
+    }
+    catch (err) {
+        console.error("Failed to launch Cider:", err);
+    }
+    return false;
+}
 function getToken() {
     const token = process.env.CIDER_API_TOKEN;
     if (token) {
@@ -81,6 +113,7 @@ function formatTime(seconds) {
     return `${mins}:${secs.toString().padStart(2, "0")}`;
 }
 let lastTrackId = null;
+let idlePollCount = 0;
 let pollInterval = null;
 async function getNowPlaying() {
     try {
@@ -99,7 +132,8 @@ async function getNowPlaying() {
     }
 }
 function updateStatus(ctx, theme, track) {
-    if (track) {
+    if (track?.name) {
+        idlePollCount = 0;
         const currentId = track.trackId || null;
         if (currentId !== lastTrackId) {
             lastTrackId = currentId;
@@ -107,9 +141,12 @@ function updateStatus(ctx, theme, track) {
             ctx.ui.setStatus("pi-cider", theme.fg("accent", `♪ ${shortName} - ${track.artist}`));
         }
     }
-    else if (lastTrackId !== null) {
-        lastTrackId = null;
-        ctx.ui.setStatus("pi-cider", theme.fg("dim", "Cider (idle)"));
+    else {
+        idlePollCount++;
+        if (idlePollCount >= 2 && lastTrackId !== null) {
+            lastTrackId = null;
+            ctx.ui.setStatus("pi-cider", theme.fg("dim", "Cider (idle)"));
+        }
     }
 }
 export default function (pi) {
@@ -190,6 +227,7 @@ export default function (pi) {
         description: "Resume playback or start playing the queue",
         parameters: Type.Object({}),
         async execute(_toolCallId, _params, _signal) {
+            await ensureCiderRunning();
             await ciderRequest("/api/v1/playback/play", "POST", {});
             return result("Playback started");
         },
@@ -297,6 +335,7 @@ export default function (pi) {
             url: Type.String({ description: "Apple Music URL" }),
         }),
         async execute(_toolCallId, params, _signal) {
+            await ensureCiderRunning();
             await ciderRequest("/api/v1/playback/play-url", "POST", { url: params.url });
             // Small delay then play
             await new Promise(r => setTimeout(r, 500));
@@ -371,6 +410,7 @@ export default function (pi) {
             id: Type.String({ description: "Apple Music song ID" }),
         }),
         async execute(_toolCallId, params, _signal) {
+            await ensureCiderRunning();
             await ciderRequest("/api/v1/playback/play-item", "POST", { type: "songs", id: params.id });
             return result(`Playing song ID: ${params.id}`);
         },
@@ -383,6 +423,7 @@ export default function (pi) {
             id: Type.String({ description: "Apple Music song ID" }),
         }),
         async execute(_toolCallId, params, _signal) {
+            await ensureCiderRunning();
             await ciderRequest("/api/v1/playback/play-next", "POST", { type: "songs", id: params.id });
             return result(`Added song ${params.id} to play next`);
         },
@@ -395,6 +436,7 @@ export default function (pi) {
             id: Type.String({ description: "Apple Music song ID" }),
         }),
         async execute(_toolCallId, params, _signal) {
+            await ensureCiderRunning();
             await ciderRequest("/api/v1/playback/play-later", "POST", { type: "songs", id: params.id });
             return result(`Added song ${params.id} to queue`);
         },
